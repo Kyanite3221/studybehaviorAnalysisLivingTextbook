@@ -1,0 +1,7 @@
+{
+  "whitelist": false,
+  "list": [
+    {"type": "email",
+    "value": "g.j.b.vanvliet@student.utwente.nl"}
+  ]
+}
