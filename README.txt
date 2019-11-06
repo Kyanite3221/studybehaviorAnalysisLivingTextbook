@@ -38,4 +38,17 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 				"value": string
 			}
 		]}
+
+"functions"(optional):
+	[
+		functionName(any out of:
+			totalHitsPerDay,
+			pathHitsPerDay,
+			dailyOrigins,
+			odData,
+			totalOrigins,
+			dashboardMetaData,
+			conceptOrigins
+			)
+	]
 }

@@ -348,7 +348,7 @@ def determineHitType(user, timestamp, concept, EVENTPAGELOADDELAY=1):
 
 
 
-def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False):  # ToDo split this into other functions
+def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False, functions=None):  # ToDo split this into other functions
     if metaData is None:
         with open("outputs/metaData.json", "r") as f:
             metaData = json.load(f, object_hook=Main.datetime_parser)
@@ -368,19 +368,23 @@ def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug
     for day in metaData["hitsPerDay"]:
         bisect.insort(hitsPerDay, (day, metaData["hitsPerDay"][day]))
 
-    saveHitsPerDay(hitsPerDay)
+    if functions is None:
+        saveMetaDataForDashboard(metaData)
+    else:
 
-    saveHitsPerDayInPath(metaData)
+        if "all" in functions or "totalHitsPerDay" in functions: saveHitsPerDay(hitsPerDay)
 
-    saveDailyOrigins(metaData)
+        if "all" in functions or "pathHitsPerDay" in functions: saveHitsPerDayInPath(metaData)
 
-    saveOriginDestinationData(debug, learningPaths, nodes)
+        if "all" in functions or "dailyOrigins" in functions: saveDailyOrigins(metaData)
 
-    calculateTotalOriginHits(metaData, nodes)
+        if "all" in functions or "odData" in functions: saveOriginDestinationData(debug, learningPaths, nodes)
 
-    saveMetaDataForDashboard(metaData)
+        if "all" in functions or "totalOrigins" in functions: calculateTotalOriginHits(metaData, nodes)
 
-    saveConceptOrigins(conceptNames, nodes)
+        if "all" in functions or "dashboardMetaData" in functions: saveMetaDataForDashboard(metaData)
+
+        if "all" in functions or "conceptOrigins" in functions: saveConceptOrigins(conceptNames, nodes)
 
 
 def saveConceptOrigins(conceptNames, nodes):
