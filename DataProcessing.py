@@ -348,7 +348,7 @@ def determineHitType(user, timestamp, concept, EVENTPAGELOADDELAY=1):
 
 
 
-def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False):
+def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False):  # ToDo split this into other functions
     if metaData is None:
         with open("outputs/metaData.json", "r") as f:
             metaData = json.load(f, object_hook=Main.datetime_parser)

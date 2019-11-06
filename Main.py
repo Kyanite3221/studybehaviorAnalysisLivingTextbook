@@ -112,6 +112,7 @@ if __name__ == "__main__":
     main(debug=debug, nameFilename=nameFileName, students=students,
          learningPaths=learningpaths, period=period, fileNames=fileNames, heatMapColor=heatMapColor)
     # Visualisation.hitsPerDayPerLearningPath(max_value=500)
+    # ToDo add another argument to the settings to see which additional functions should be run
     # metaData=None
     # with open("outputs/metaData.json", "r") as input:
     #     metaData=json.load(input, object_hook=datetime_parser)
