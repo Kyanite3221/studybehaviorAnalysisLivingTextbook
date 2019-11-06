@@ -34,5 +34,6 @@
   "dataFilename": ["gis_rs_v2_tracking_export3_10_2019.xlsx","mockup.xlsx"],
   "nameFilename": "gis_rs_v2_names.csv",
   "debug": true,
-  "heatMapColor": "rainbow"
+  "heatMapColor": "rainbow",
+  "functions": [""]
 }

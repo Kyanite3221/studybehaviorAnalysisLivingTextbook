@@ -348,7 +348,7 @@ def determineHitType(user, timestamp, concept, EVENTPAGELOADDELAY=1):
 
 
 
-def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False, functions=None):  # ToDo split this into other functions
+def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False, functions=None):
     if metaData is None:
         with open("outputs/metaData.json", "r") as f:
             metaData = json.load(f, object_hook=Main.datetime_parser)
@@ -372,19 +372,19 @@ def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug
         saveMetaDataForDashboard(metaData)
     else:
 
-        if "all" in functions or "totalHitsPerDay" in functions: saveHitsPerDay(hitsPerDay)
+        if "all" in functions or "totalHitsPerDayCSV" in functions: saveHitsPerDay(hitsPerDay)
 
-        if "all" in functions or "pathHitsPerDay" in functions: saveHitsPerDayInPath(metaData)
+        if "all" in functions or "pathHitsPerDayCSV" in functions: saveHitsPerDayInPath(metaData)
 
-        if "all" in functions or "dailyOrigins" in functions: saveDailyOrigins(metaData)
+        if "all" in functions or "dailyOriginsCSV" in functions: saveDailyOrigins(metaData)
 
-        if "all" in functions or "odData" in functions: saveOriginDestinationData(debug, learningPaths, nodes)
+        if "all" in functions or "odDataCSV" in functions: saveOriginDestinationData(debug, learningPaths, nodes)
 
-        if "all" in functions or "totalOrigins" in functions: calculateTotalOriginHits(metaData, nodes)
+        if "all" in functions or "totalOriginsJSON" in functions: calculateTotalOriginHits(metaData, nodes)
 
-        if "all" in functions or "dashboardMetaData" in functions: saveMetaDataForDashboard(metaData)
+        if "all" in functions or "dashboardMetaDataCSV" in functions: saveMetaDataForDashboard(metaData)
 
-        if "all" in functions or "conceptOrigins" in functions: saveConceptOrigins(conceptNames, nodes)
+        if "all" in functions or "conceptOriginsCSV" in functions: saveConceptOrigins(conceptNames, nodes)
 
 
 def saveConceptOrigins(conceptNames, nodes):

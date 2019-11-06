@@ -38,7 +38,8 @@ def datetime_parser(dct):
     return dct
 
 
-def main(nameFilename,debug=False,fileNames=None,learningPaths={},students=None, period=None, heatMapColor="jet"):
+def main(nameFilename,debug=False,fileNames=None,learningPaths={},
+         students=None, period=None, heatMapColor="jet", functions=None):
     Visualisation.init(nameFilename)
     settings = {}
     settings['learningpaths'] = learningPaths
@@ -68,7 +69,7 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},students=None,
         Visualisation.heatMapOfGivenNodes(givenNodes=settings['learningpaths'][path]['list'],
                                           filename="heatmapPath"+str(path), colors=heatMapColor)
         if debug: print("done for path " + str(path))
-    DataProcessing.csvExports(nameFilename, learningPaths=settings['learningpaths'])
+    DataProcessing.csvExports(nameFilename, learningPaths=settings['learningpaths'], functions=functions)
 
     # knownPaths=['8', '135', '136', '144', '143', '142', '141', '140', '148', '145', '137', '139', '138', '146']
     # Visualisation.generateSetOfPathVisits(knownPaths, metaData=output["metaData"])
@@ -93,6 +94,7 @@ if __name__ == "__main__":
         students=settings['students'] if 'students' in settings else None
         heatMapColor = settings['heatMapColor'] if 'heatMapColor' in settings else "jet"
         debug=settings['debug'] if 'debug' in settings else False
+        functions = dict([(x,True) for x in settings['functions']]) if 'functions' in settings else None
     else:
         learningpaths = {"8":
                             {"starting time": "2019-09-03 08:45:00",
@@ -109,8 +111,10 @@ if __name__ == "__main__":
         students=None
         heatMapColor = "jet"
         debug=False
+        functions = None
     main(debug=debug, nameFilename=nameFileName, students=students,
-         learningPaths=learningpaths, period=period, fileNames=fileNames, heatMapColor=heatMapColor)
+         learningPaths=learningpaths, period=period, fileNames=fileNames,
+         heatMapColor=heatMapColor, functions=functions)
     # Visualisation.hitsPerDayPerLearningPath(max_value=500)
     # ToDo add another argument to the settings to see which additional functions should be run
     # metaData=None
