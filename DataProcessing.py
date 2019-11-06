@@ -368,65 +368,44 @@ def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug
     for day in metaData["hitsPerDay"]:
         bisect.insort(hitsPerDay, (day, metaData["hitsPerDay"][day]))
 
-    with open("outputs/hitsPerDay.csv", "w", newline='') as hitsOutput:
-        writer = csv.writer(hitsOutput)
+    saveHitsPerDay(hitsPerDay)
 
-        writer.writerow(["days","hits"])
-        for day in hitsPerDay:
-            writer.writerow(day)
+    saveHitsPerDayInPath(metaData)
 
+    saveDailyOrigins(metaData)
 
-    hitsPerDay = []
-    for path in metaData["hitsPerLearningPathPerDay"]:
-        hitsPerDay = []
-        for day in metaData["hitsPerLearningPathPerDay"][path]:
-            bisect.insort(hitsPerDay,(day, metaData["hitsPerLearningPathPerDay"][path][day]))
+    saveOriginDestinationData(debug, learningPaths, nodes)
 
-        with open("outputs/hitsPerDayPath" + path + ".csv", "w", newline='') as hitsOutput:
-            writer = csv.writer(hitsOutput)
-            writer.writerow(["days", "hits", "path" + path])
-            for day in hitsPerDay:
-                writer.writerow(day)
+    calculateTotalOriginHits(metaData, nodes)
 
-    with open("outputs/originDataDay.csv", 'w', newline='') as dayoutput:
-        writer=csv.writer(dayoutput)
-        types = ["general","external","conceptBrowser","learningPathBrowser"]
-        writer.writerow(["day"]+types+["total"])
-        for day in sorted(metaData['typeOfHitsPerDay']):
-            total=0
-            row=[str(day)]
-            for type in types:
-                row.append(metaData['typeOfHitsPerDay'][day][type])
-                total += metaData['typeOfHitsPerDay'][day][type]
-            row.append(total)
-            writer.writerow(row)
+    saveMetaDataForDashboard(metaData)
+
+    saveConceptOrigins(conceptNames, nodes)
 
 
-    with open("outputs/odData.csv","w", newline='') as odOutput:
-        writer = csv.writer(odOutput)
-        writer.writerow(["origin", "destination", "frequency"])
-        concepts = []
-        maxTrans=(0,0,0)
-        for path in learningPaths:
-            for concept in learningPaths[path]["list"]:
-                concepts.append(str(concept))
-
-        for node in concepts:
-            node=str(node)
-            if node in nodes:
-                for conceptP in concepts:
-                    conceptP = str(conceptP)
-                    if conceptP in nodes[node]["nextNodes"]:
-                        writer.writerow([node, conceptP, nodes[node]["nextNodes"][conceptP]])
-                        maxTrans=max(maxTrans,(nodes[node]["nextNodes"][conceptP],node,conceptP))
-                    # else:
-                    #     writer.writerow([node, conceptP, 0])
-            else:
-                for conceptP in concepts:
-                    writer.writerow([node, conceptP, 0])
-        if debug: print("most common transition was:" + str(maxTrans))
+def saveConceptOrigins(conceptNames, nodes):
+    with open("outputs/originsPerConcept.csv", "w", newline='') as originOutput:
+        writer = csv.writer(originOutput, 'excel')
+        writer.writerow(["concept(conceptId)", "total hits", "general link clicks", "Concept browser hits",
+                         "learning path hits", "external link clicks"])
+        for id in nodes:
+            node = nodes[id]
+            writer.writerow([conceptNames[id] + "(" + str(id) + ")" if id in conceptNames else id, node['hits'],
+                             node['typeOfHits']['general'],
+                             node['typeOfHits']['conceptBrowser'], node['typeOfHits']['learningPathBrowser'],
+                             node['typeOfHits']['external']])
 
 
+def saveMetaDataForDashboard(metaData):
+    with open("outputs/metaDataDashBoard.csv", "w", newline='') as metaOutputPrime:
+        totalUsers = metaData["totalUsersInPeriod"]
+        totalHitsPerPath = [(x, sum(y.values())) for (x, y) in metaData["hitsPerLearningPathPerDay"].items()]
+        writer = csv.writer(metaOutputPrime)
+        writer.writerow(["total users in period", totalUsers])
+        writer.writerow(["total hits per learningpath", totalHitsPerPath])
+
+
+def calculateTotalOriginHits(metaData, nodes):
     with open("outputs/metaData.json", "w") as metaOutput:
         mostVisited = []
         totalHits = 0
@@ -435,7 +414,7 @@ def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug
         learningPathHits = 0
         externalPathHits = 0
         for node in nodes:
-            bisect.insort(mostVisited,(nodes[node]["hits"],node))
+            bisect.insort(mostVisited, (nodes[node]["hits"], node))
             mostVisited = mostVisited[-25:]
             totalHits += nodes[node]["hits"]
             types = nodes[node]["typeOfHits"]
@@ -444,27 +423,74 @@ def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug
             learningPathHits += types["learningPathBrowser"]
             externalPathHits += types["external"]
         metaData["mostVisited"] = mostVisited
-        metaData["totalHits"]=totalHits
-        metaData["generalLinkConceptHits"] = (generalHits,generalHits/totalHits if totalHits > 0 else 0)
-        metaData["conceptBrowserConceptHits"] = (conceptHitps, conceptHitps/totalHits if totalHits > 0 else 0)
-        metaData["learningPathBrowserConceptHits"] = (learningPathHits,learningPathHits/totalHits if totalHits > 0 else 0)
-        metaData["externalHits"] = (externalPathHits, externalPathHits/totalHits if totalHits > 0 else 0)
+        metaData["totalHits"] = totalHits
+        metaData["generalLinkConceptHits"] = (generalHits, generalHits / totalHits if totalHits > 0 else 0)
+        metaData["conceptBrowserConceptHits"] = (conceptHitps, conceptHitps / totalHits if totalHits > 0 else 0)
+        metaData["learningPathBrowserConceptHits"] = (
+        learningPathHits, learningPathHits / totalHits if totalHits > 0 else 0)
+        metaData["externalHits"] = (externalPathHits, externalPathHits / totalHits if totalHits > 0 else 0)
 
         json.dump(metaData, metaOutput, default=str)
 
 
-    with open("outputs/metaDataDashBoard.csv", "w",newline='') as metaOutputPrime:
-        totalUsers = metaData["totalUsersInPeriod"]
-        totalHitsPerPath = [(x,sum(y.values())) for (x,y) in metaData["hitsPerLearningPathPerDay"].items()]
-        writer = csv.writer(metaOutputPrime)
-        writer.writerow(["total users in period", totalUsers])
-        writer.writerow(["total hits per learningpath",totalHitsPerPath])
+def saveOriginDestinationData(debug, learningPaths, nodes):
+    with open("outputs/odData.csv", "w", newline='') as odOutput:
+        writer = csv.writer(odOutput)
+        writer.writerow(["origin", "destination", "frequency"])
+        concepts = []
+        maxTrans = (0, 0, 0)
+        for path in learningPaths:
+            for concept in learningPaths[path]["list"]:
+                concepts.append(str(concept))
 
-    with open("outputs/originsPerConcept.csv", "w", newline='') as originOutput:
-        writer = csv.writer(originOutput, 'excel')
-        writer.writerow(["concept(conceptId)","total hits","general link clicks","Concept browser hits",
-                         "learning path hits", "external link clicks"])
-        for id in nodes:
-            node = nodes[id]
-            writer.writerow([conceptNames[id] + "(" + str(id) + ")" if id in conceptNames else id, node['hits'], node['typeOfHits']['general'],
-                             node['typeOfHits']['conceptBrowser'], node['typeOfHits']['learningPathBrowser'], node['typeOfHits']['external']])
+        for node in concepts:
+            node = str(node)
+            if node in nodes:
+                for conceptP in concepts:
+                    conceptP = str(conceptP)
+                    if conceptP in nodes[node]["nextNodes"]:
+                        writer.writerow([node, conceptP, nodes[node]["nextNodes"][conceptP]])
+                        maxTrans = max(maxTrans, (nodes[node]["nextNodes"][conceptP], node, conceptP))
+                    # else:
+                    #     writer.writerow([node, conceptP, 0])
+            else:
+                for conceptP in concepts:
+                    writer.writerow([node, conceptP, 0])
+        if debug: print("most common transition was:" + str(maxTrans))
+
+
+def saveDailyOrigins(metaData):
+    with open("outputs/originDataDay.csv", 'w', newline='') as dayoutput:
+        writer = csv.writer(dayoutput)
+        types = ["general", "external", "conceptBrowser", "learningPathBrowser"]
+        writer.writerow(["day"] + types + ["total"])
+        for day in sorted(metaData['typeOfHitsPerDay']):
+            total = 0
+            row = [str(day)]
+            for type in types:
+                row.append(metaData['typeOfHitsPerDay'][day][type])
+                total += metaData['typeOfHitsPerDay'][day][type]
+            row.append(total)
+            writer.writerow(row)
+
+
+def saveHitsPerDayInPath(metaData):
+    for path in metaData["hitsPerLearningPathPerDay"]:
+        hitsPerDay = []
+        for day in metaData["hitsPerLearningPathPerDay"][path]:
+            bisect.insort(hitsPerDay, (day, metaData["hitsPerLearningPathPerDay"][path][day]))
+
+        with open("outputs/hitsPerDayPath" + path + ".csv", "w", newline='') as hitsOutput:
+            writer = csv.writer(hitsOutput)
+            writer.writerow(["days", "hits", "path" + path])
+            for day in hitsPerDay:
+                writer.writerow(day)
+
+
+def saveHitsPerDay(hitsPerDay):
+    with open("outputs/hitsPerDay.csv", "w", newline='') as hitsOutput:
+        writer = csv.writer(hitsOutput)
+
+        writer.writerow(["days", "hits"])
+        for day in hitsPerDay:
+            writer.writerow(day)
