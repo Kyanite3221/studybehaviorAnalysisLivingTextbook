@@ -16,7 +16,7 @@ def appendOrCreateUser(given_map, user_hash, value, page=True):
         given_map[user_hash]['events'].append(value)
 
 
-def processDataExtracted(data, learningPaths, filterHitsByTime=True):
+def processDataExtracted(data, learningPaths, filterHitsByTime=False,filesToSave={}):
 
     # load the workbook
 
@@ -35,8 +35,7 @@ def processDataExtracted(data, learningPaths, filterHitsByTime=True):
     # This is not currently being used for the output
 
     pageLoads = wb['Page loads']
-    # extractConceptsThroughEvents(nodeMap, events, users,filterHitsByTime)
-    metaData['typeOfHitsPerDay'] = extractConceptsWithOrigin(nodeMap, pageLoads, users, False)
+    metaData['typeOfHitsPerDay'] = extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHitsByTime)
     # we now want to know in which paths each concept was
     # ToDo add the visits to the extraction
     for path in learningPaths:
@@ -132,20 +131,22 @@ def processDataExtracted(data, learningPaths, filterHitsByTime=True):
                     pathHits[str(concept[0].date())] = 1
             lastConcept = concept
 
-    saveExportFiles(metaData, nodeMap, userPaths, users)
+    saveExportFiles(metaData, nodeMap, userPaths, users,filesToSave)
     return {"users": users, "nodes": jsonify(nodeMap), "userPaths": userPaths, "metaData": metaData}
 
 
-def saveExportFiles(metaData, nodeMap, userPaths, users):
+def saveExportFiles(metaData, nodeMap, userPaths, users, filesToSave):
     if not os.path.exists("outputs"):
         os.makedirs("outputs")
     metaData["totalUsersInPeriod"] = len(users)
-    with open('outputs/users.json', 'w+') as output:
-        json.dump(users, output, default=str)
+    if "all" in filesToSave or "users" in filesToSave:
+        with open('outputs/users.json', 'w+') as output:
+            json.dump(users, output, default=str)
     with open('outputs/nodes.json', 'w+') as output:
         json.dump(jsonify(nodeMap), output, default=str)
-    with open('outputs/paths.json', 'w+') as output:
-        json.dump(userPaths, output, default=str)
+    if "all" in filesToSave or "paths" in filesToSave:
+        with open('outputs/paths.json', 'w+') as output:
+            json.dump(userPaths, output, default=str)
     with open('outputs/metaData.json', 'w+') as output:
         json.dump(metaData, output, default=str)
 
@@ -339,13 +340,12 @@ def extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHits=True):
         user['concepts'] = templist[::-1]
     return hitTypesPerDay
 
+
 def determineHitType(user, timestamp, concept, EVENTPAGELOADDELAY=1):
     if str(timestamp.strftime("%Y-%m-%d %H:%M:%S")) in user['conceptEvents'] and str(user['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))][0]) == str(concept):
         return user['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))][1]
     else:
         return "external"
-
-
 
 
 def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False, functions=None):

@@ -39,7 +39,7 @@ def datetime_parser(dct):
 
 
 def main(nameFilename,debug=False,fileNames=None,learningPaths={},
-         students=None, period=None, heatMapColor="jet", functions=None):
+         students=None, period=None, heatMapColor="jet", functions=None, filterQuickClicks=False):
     Visualisation.init(nameFilename)
     settings = {}
     settings['learningpaths'] = learningPaths
@@ -61,7 +61,8 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
     Annonymisation.annonymiseExtracted(data)
     if debug:print("done making data anonymous")
 
-    output = DataProcessing.processDataExtracted(data, settings['learningpaths'],False)
+    output = DataProcessing.processDataExtracted(data, settings['learningpaths'],filterQuickClicks)
+    # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
 
     for path in settings['learningpaths']:
         Visualisation.learningpathFlowthrough(settings['learningpaths'][path])
