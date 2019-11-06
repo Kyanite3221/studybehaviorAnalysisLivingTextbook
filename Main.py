@@ -35,7 +35,8 @@ def datetime_parser(dct):
 
 
 def main(nameFilename,debug=False,fileNames=None,learningPaths={},
-         students=None, period=None, heatMapColor="jet", functions=None, filterQuickClicks=False, filesToSave={"metaData":True, "nodes":True}):
+         students=None, period=None, heatMapColor="jet", functions=None,
+         filterQuickClicks=False, filesToSave={"metaData":True, "nodes":True}):
     Visualisation.init(nameFilename)
     settings = {}
     settings['learningpaths'] = learningPaths
@@ -68,6 +69,10 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
                                           filename="heatmapPath"+str(path), colors=heatMapColor)
         if debug: print("done for path " + str(path))
     DataProcessing.csvExports(nameFilename, learningPaths=settings['learningpaths'], functions=functions)
+
+    if not functions is None:
+        # ToDo run any of the unused visualisations
+        if debug: print("not implemented")
 
     # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
     if "all" not in filesToSave: # remove any unwanted files
