@@ -1,15 +1,10 @@
-import datetime
 import json
-import re
 import sys
-
 import FilterData
 import Annonymisation
 import DataProcessing
 import dateutil.parser
-
 import Visualisation
-from ConceptNode import jsonify
 
 USERIDINDEX=0
 SESSIONIDINDEX=1
@@ -62,7 +57,7 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
     if debug:print("done making data anonymous")
 
     output = DataProcessing.processDataExtracted(data, settings['learningpaths'],filterQuickClicks)
-    # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
+
 
     for path in settings['learningpaths']:
         Visualisation.learningpathFlowthrough(settings['learningpaths'][path])
@@ -71,6 +66,9 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
                                           filename="heatmapPath"+str(path), colors=heatMapColor)
         if debug: print("done for path " + str(path))
     DataProcessing.csvExports(nameFilename, learningPaths=settings['learningpaths'], functions=functions)
+
+    # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
+
 
     # knownPaths=['8', '135', '136', '144', '143', '142', '141', '140', '148', '145', '137', '139', '138', '146']
     # Visualisation.generateSetOfPathVisits(knownPaths, metaData=output["metaData"])
