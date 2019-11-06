@@ -42,6 +42,7 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 "functions"(optional):
 	[
 		functionName(any out of:
+			all,
 			totalHitsPerDayCSV,
 			pathHitsPerDayCSV,
 			dailyOriginsCSV,
@@ -49,6 +50,21 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 			totalOriginsJSON,
 			dashboardMetaDataCSV,
 			conceptOriginsCSV
-			)
+			
+			dashboardMetaDataCSV is executed by default, but can be left out by entering an empty array)
+	],
+
+"filterSuccessiveHits": bool,
+
+"filesToSave": 
+	[
+		fileName(any out of:
+			all,
+			users,
+			nodes,
+			paths,
+			metaData
+			
+			nodes and metaData are always generated, but if they are not in the array, they are removed after execution)
 	]
 }
