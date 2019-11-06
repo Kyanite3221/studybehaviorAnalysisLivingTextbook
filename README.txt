@@ -51,7 +51,8 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 			dashboardMetaDataCSV,
 			conceptOriginsCSV,
 			
-			totalHitsPerDayGraph,
+			allHitsPerDayPerConceptGraph(requires conceptHitsParams,
+			hitsPerDayPerConceptGraph(requires conceptHitsParams,
 			usersPerDayPerLearningPath,
 			allUsersPerDayPerLearningPath(same scale),
 			allHitsPerDayPerLearningPath(same scale),
@@ -75,6 +76,7 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 			nodes and metaData are always generated, but if they are not in the array, they are removed after execution)
 	],
 "heatMapColor": name of the matplotlib colormap, defaults to jet
+"conceptHitsParams":[conceptIds],
 heatmapParams(optional):
 	{
 		"givenNodes"(optional): [conceptIds],

@@ -4,18 +4,7 @@
       "starting time": "2019-09-03 08:45:00",
       "list": [11941, 11894, 11833, 11800, 11832, 11801, 11853, 11799, 12070],
       "id": "8"
-    },
-    "135": {
-      "starting time": "2019-09-03 09:30:00",
-      "list": [12021, 11927, 11835, 11926, 11866, 12038, 11958, 11777, 11980],
-      "id": "135"
-    },
-    "146": {
-      "starting time": "2019-09-19 08:45:00",
-      "list": [11786, 11789, 11787, 11982, 11766, 11981, 11785, 12039, 11933, 11938, 11828],
-      "id": "146"
     }
-
   },
   "period": {
     "usePeriod": false,
@@ -35,7 +24,11 @@
   "nameFilename": "gis_rs_v2_names.csv",
   "debug": true,
   "heatMapColor": "rainbow",
-  "functions": ["dashboardMetaDataCSV", "conceptOriginsCSV"],
+  "functions": ["all"],
   "filterSuccessiveHits": false,
-  "filesToSave": ["metaData"]
+  "filesToSave": ["metaData"],
+  "conceptHitsParams": [11941,11940],
+  "heatmapParams": {
+    "threshholdHitsValue": 100
+  }
 }

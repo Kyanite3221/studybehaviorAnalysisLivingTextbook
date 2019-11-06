@@ -74,6 +74,10 @@ def hitsPerDay(nodes=None, nodeId=None,max_value=None):
     plt.xlabel('day')
     plt.ylabel('visits')
     plt.title('concept ' + str(nodeId) + ' visits per day')
+
+    if max_value:
+        axes = plt.gca()
+        axes.set_ylim(0, max_value)
     plt.xticks(index + bar_width, days)
     plt.legend()
 
@@ -81,7 +85,7 @@ def hitsPerDay(nodes=None, nodeId=None,max_value=None):
 
     ax.grid(b=True, which='major', color='k', linewidth=0.5)
     plt.setp(ax.get_xticklabels(), rotation=50, horizontalalignment='right')
-    filename = "outputs/conceptVisits" + str(nodeId) + ".png"
+    filename = "outputs/concept" + nodeId + "Visits" + str(nodeId) + ".png"
     plt.savefig(filename)
     plt.close(fig)
 
@@ -283,7 +287,7 @@ def hitsPerDayPerLearningPath(pathId=None, nodes=None, settings=None,
 
 def generateSetOfPathVisits(pathId=None, nodes=None, settings=None,
                             max_value=False, logarithmic_scale=False,
-                            startDate=None, endDate=None,metaData=None,users=False, debug=False):
+                            startDate=None, endDate=None,metaData=None,users=False, debug=False,specificConcept=False):
     if metaData is None:
         try:
             with open("outputs/metaData.json", 'r') as metaFile:
@@ -325,8 +329,12 @@ def generateSetOfPathVisits(pathId=None, nodes=None, settings=None,
             usersPerDayPerLearningPath(path,nodes,settings,max_value,logarithmic_scale,startDate,endDate,days)
 
     else:
-        for path in pathId:
-            hitsPerDayPerLearningPath(path,nodes,settings,max_value,logarithmic_scale,startDate,endDate,days)
+        if specificConcept:
+            for concept in pathId:
+                hitsPerDay(nodeId=concept, max_value=max_value)
+        else:
+            for path in pathId:
+                hitsPerDayPerLearningPath(path,nodes,settings,max_value,logarithmic_scale,startDate,endDate,days)
 
 
 def learningpathFlowthrough(learningpath, nodes=None, debug=False):

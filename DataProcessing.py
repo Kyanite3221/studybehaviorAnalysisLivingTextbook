@@ -348,6 +348,7 @@ def determineHitType(user, timestamp, concept, EVENTPAGELOADDELAY=1):
         return "external"
 
 
+
 def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug=False, functions=None):
     if metaData is None:
         with open("outputs/metaData.json", "r") as f:
