@@ -56,7 +56,7 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
     if debug: print("done extracting data")
 
     Annonymisation.annonymiseExtracted(data)
-    if debug:print("done making data anonymous")
+    if debug: print("done making data anonymous")
 
     output = DataProcessing.processDataExtracted(data, settings['learningpaths'],filterQuickClicks,
                                                  filesToSave=filesToSave)
@@ -68,11 +68,26 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
         Visualisation.heatMapOfGivenNodes(givenNodes=settings['learningpaths'][path]['list'],
                                           filename="heatmapPath"+str(path), colors=heatMapColor)
         if debug: print("done for path " + str(path))
+    if debug: print(settings)
     DataProcessing.csvExports(nameFilename, learningPaths=settings['learningpaths'], functions=functions)
 
     if not functions is None:
         # ToDo run any of the unused visualisations
         if debug: print("not implemented")
+        if "all" in functions or "totalHitsPerDayGraph" in functions:
+            Visualisation.hitsPerDay()
+        if "usersPerDayPerLearningPath" in functions: # not all, because if we want all, they should be on the same scale
+            for path in settings['learningpaths']:
+                Visualisation.usersPerDayPerLearningPath(path, settings=settings)
+        if "all" in functions or "allUsersPerDayPerLearningPath" in functions:
+            Visualisation.generateSetOfPathVisits(pathId=list(settings['learningpaths']), settings=settings,
+                                                  debug=debug, users=True)
+        if "all" in functions or "allHitsPerDayPerLearningPath" in functions:
+            Visualisation.generateSetOfPathVisits(pathId=list(settings['learningpaths']),settings=settings, debug=debug)
+        if "all" in functions or "allNodesFlowthrough" in functions:
+            Visualisation.allNodesFlowthrough(debug=debug)  # ToDo there is currently no way to properly display this
+        if ("all" in functions or "allNodesHeatMap" in functions) and 'heatmapParams' in functions:
+            Visualisation.heatMapOfGivenNodes(**settings['heatmapParams'])
 
     # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
     if "all" not in filesToSave: # remove any unwanted files

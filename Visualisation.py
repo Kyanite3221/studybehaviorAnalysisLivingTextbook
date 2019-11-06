@@ -283,12 +283,21 @@ def hitsPerDayPerLearningPath(pathId=None, nodes=None, settings=None,
 
 def generateSetOfPathVisits(pathId=None, nodes=None, settings=None,
                             max_value=False, logarithmic_scale=False,
-                            startDate=None, endDate=None,metaData=None,users=False):
+                            startDate=None, endDate=None,metaData=None,users=False, debug=False):
+    if metaData is None:
+        try:
+            with open("outputs/metaData.json", 'r') as metaFile:
+                metaData = json.load(metaFile)
+        except:
+            if debug: print("no metaDataFile found, should be called metaData.json and should be in outputs")
     while pathId is None:
         try:
             pathId=[str(int(x)) for x in input("please enter the desired learning path(s), separated by ','\n").split(",")]
         except:
             continue
+    boolVal=(not settings is None) and 'period' in settings and 'startDate' in settings['period']
+    startDate = settings['period']['startDate'].date() if boolVal else None
+    endDate = settings['period']['endDate'].date() if boolVal else None
     while startDate is None:
         try:
             startDate = dateutil.parser.parse(input("from which date would you like the graphs to start?(yyyy-mm-dd)")).date()
@@ -302,13 +311,14 @@ def generateSetOfPathVisits(pathId=None, nodes=None, settings=None,
     pandaRange = pandas.date_range(startDate, endDate).tolist()
     days = [x.date() for x in pandaRange]
     if not max_value:
+        if debug: print("calculating max_value")
         if not metaData is None:
             # we only want the relevant learningpaths
             relevantDict=dict(filter(lambda given: given[0] in pathId, metaData["hitsPerLearningPathPerDay"].items()))
             # now we get the max value for each path
-            maxes=[max(d.values()) for d in relevantDict.values()]
+            maxes = [max(d.values()) for d in relevantDict.values()]
             # then we calculate the max over every path
-            max_value=max(maxes)
+            max_value=max(maxes)+10
 
     if users:
         for path in pathId:
@@ -548,30 +558,3 @@ def heatmapify(data, rowLables, columnLables=None, ax=None,
         return im, cbar, texts
     else:
         plt.text(0.1, 0.85,'no hits',horizontalalignment='center',verticalalignment='center',transform = ax.transAxes)
-
-
-
-if __name__ == "__main__":
-    nodes = {}
-    if len(sys.argv) < 2:
-        sys.argv.append(input("which file would you like to use?\n"))
-    with open(sys.argv[1], "r") as f:
-        nodes = json.load(f, object_hook=datetime_parser)
-    # flowthroughFromNodes(nodes)
-    # learningpathFlowthrough(nodes, learningpaths[input("which learning path do you want to analyse\n")])
-    # hitsPerDay(nodes, input("which concept would you like to analyse\n"))
-    hitsPerDayPerLearningPath()
-
-# def flowthroughFromNodes(nodes):
-#     with open("outputs/flowthrough.js", "w+") as f:
-#         f.write("var jsonData = [")
-#     with open("outputs/flowthrough.js", "a") as f:
-#         for node in nodes:
-#             f.write("{\"number of links\":" + str(len(nodes[node]["nextNodes"]) + 1) +
-#                     ",\"isEmpty\":false,\"name\":\"" + conceptNames[node] + "\",\"relations\":[")
-#             for nextNode in nodes[node]["nextNodes"]:
-#                 curNode = nodes[node]["nextNodes"]
-#                 f.write("{\"target\":" + str(nextNode) + ",\"relationName\":\"" + str(
-#                     curNode[nextNode]) + "\",\"id\":" + str(node) + "},")
-#             f.write("{}],\"id\":" + str(node) + "},")
-#         f.write("{\"numberOfLinks\":0,\"isEmpty\":true,\"name\":\"test\",\"relations\":[],\"id\":0}];")
