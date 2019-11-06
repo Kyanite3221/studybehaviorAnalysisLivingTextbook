@@ -35,6 +35,7 @@
   "nameFilename": "gis_rs_v2_names.csv",
   "debug": true,
   "heatMapColor": "rainbow",
-  "functions": [],
-  "filterSuccessiveHits": false
+  "functions": ["dashboardMetaDataCSV", "conceptOriginsCSV"],
+  "filterSuccessiveHits": false,
+  "filesToSave": ["metaData"]
 }

@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import FilterData
 import Annonymisation
@@ -34,7 +35,7 @@ def datetime_parser(dct):
 
 
 def main(nameFilename,debug=False,fileNames=None,learningPaths={},
-         students=None, period=None, heatMapColor="jet", functions=None, filterQuickClicks=False):
+         students=None, period=None, heatMapColor="jet", functions=None, filterQuickClicks=False, filesToSave={"metaData":True, "nodes":True}):
     Visualisation.init(nameFilename)
     settings = {}
     settings['learningpaths'] = learningPaths
@@ -56,8 +57,9 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
     Annonymisation.annonymiseExtracted(data)
     if debug:print("done making data anonymous")
 
-    output = DataProcessing.processDataExtracted(data, settings['learningpaths'],filterQuickClicks)
-
+    output = DataProcessing.processDataExtracted(data, settings['learningpaths'],filterQuickClicks,
+                                                 filesToSave=filesToSave)
+    # ToDo if visualisation's input is fixed, output['nodes'] can be used instead of loading nodes.json each time
 
     for path in settings['learningpaths']:
         Visualisation.learningpathFlowthrough(settings['learningpaths'][path])
@@ -68,7 +70,11 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
     DataProcessing.csvExports(nameFilename, learningPaths=settings['learningpaths'], functions=functions)
 
     # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
-
+    if "all" not in filesToSave: # remove any unwanted files
+        if "metaData" not in filesToSave:
+            os.remove("outputs/metaData.json")
+        if "nodes" not in filesToSave:
+            os.remove("outputs/nodes.json")
 
     # knownPaths=['8', '135', '136', '144', '143', '142', '141', '140', '148', '145', '137', '139', '138', '146']
     # Visualisation.generateSetOfPathVisits(knownPaths, metaData=output["metaData"])
@@ -94,6 +100,7 @@ if __name__ == "__main__":
         heatMapColor = settings['heatMapColor'] if 'heatMapColor' in settings else "jet"
         debug=settings['debug'] if 'debug' in settings else False
         functions = dict([(x,True) for x in settings['functions']]) if 'functions' in settings else None
+        filesToSave = settings['filesToSave'] if 'filesToSave' in settings else {"metaData":True, "nodes": True}
     else:
         learningpaths = {"8":
                             {"starting time": "2019-09-03 08:45:00",
@@ -111,9 +118,10 @@ if __name__ == "__main__":
         heatMapColor = "jet"
         debug=False
         functions = None
+        filesToSave = {"metaData":True, "nodes": True}
     main(debug=debug, nameFilename=nameFileName, students=students,
          learningPaths=learningpaths, period=period, fileNames=fileNames,
-         heatMapColor=heatMapColor, functions=functions)
+         heatMapColor=heatMapColor, functions=functions, filesToSave=filesToSave)
     # Visualisation.hitsPerDayPerLearningPath(max_value=500)
     # ToDo add another argument to the settings to see which additional functions should be run
     # metaData=None
