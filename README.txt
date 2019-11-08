@@ -77,7 +77,7 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 	],
 "heatMapColor"(optional): name of the matplotlib colormap, defaults to jet
 "conceptHitsParams"(optional):[conceptIds],
-"heatmapParams"(optional):
+"heatMapParams"(optional):
 	{
 		"givenNodes"(optional): [conceptIds],
 		"threshholdFlowthroughValue": int default 0,

@@ -85,7 +85,7 @@ def hitsPerDay(nodes=None, nodeId=None,max_value=None):
 
     ax.grid(b=True, which='major', color='k', linewidth=0.5)
     plt.setp(ax.get_xticklabels(), rotation=50, horizontalalignment='right')
-    filename = "outputs/concept" + nodeId + "Visits" + str(nodeId) + ".png"
+    filename = "outputs/concept" + str(nodeId) + "Visits" + str(nodeId) + ".png"
     plt.savefig(filename)
     plt.close(fig)
 
@@ -287,7 +287,7 @@ def hitsPerDayPerLearningPath(pathId=None, nodes=None, settings=None,
 
 def generateSetOfPathVisits(pathId=None, nodes=None, settings=None,
                             max_value=False, logarithmic_scale=False,
-                            startDate=None, endDate=None,metaData=None,users=False, debug=False,specificConcept=False):
+                            startDate=None, endDate=None,metaData=None,users=False, debug=False, specificConcept=False):
     if metaData is None:
         try:
             with open("outputs/metaData.json", 'r') as metaFile:
@@ -299,7 +299,10 @@ def generateSetOfPathVisits(pathId=None, nodes=None, settings=None,
             pathId=[str(int(x)) for x in input("please enter the desired learning path(s), separated by ','\n").split(",")]
         except:
             continue
-    boolVal=(not settings is None) and 'period' in settings and 'startDate' in settings['period']
+    if nodes is None:
+        with open("outputs/nodes.json", "r") as f:
+            nodes = json.load(f, object_hook=datetime_parser)
+    boolVal=(settings is not None) and 'period' in settings and 'startDate' in settings['period']
     startDate = settings['period']['startDate'].date() if boolVal else None
     endDate = settings['period']['endDate'].date() if boolVal else None
     while startDate is None:
@@ -318,11 +321,16 @@ def generateSetOfPathVisits(pathId=None, nodes=None, settings=None,
         if debug: print("calculating max_value")
         if not metaData is None:
             # we only want the relevant learningpaths
-            relevantDict=dict(filter(lambda given: given[0] in pathId, metaData["hitsPerLearningPathPerDay"].items()))
+            if specificConcept:
+                relevantDict = dict([(str(conceptId),nodes[str(conceptId)]['hits per day']) for conceptId in pathId])
+            else:
+                relevantDict=dict(filter(lambda given: given[0] in pathId, metaData["hitsPerLearningPathPerDay"].items()))
             # now we get the max value for each path
-            maxes = [max(d.values()) for d in relevantDict.values()]
-            # then we calculate the max over every path
-            max_value=max(maxes)+10
+            if len(relevantDict) >0:
+                maxes = [max(d.values()) for d in relevantDict.values()]
+                # then we calculate the max over every path
+                max_value=max(maxes)+10
+            else: max_value=None
 
     if users:
         for path in pathId:

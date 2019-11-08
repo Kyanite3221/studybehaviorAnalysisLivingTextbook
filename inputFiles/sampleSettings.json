@@ -28,7 +28,7 @@
   "filterSuccessiveHits": false,
   "filesToSave": ["metaData"],
   "conceptHitsParams": [11941,11940],
-  "heatmapParams": {
-    "threshholdHitsValue": 100
+  "heatMapParams": {
+    "threshholdHitsValue": 200
   }
 }

@@ -37,7 +37,7 @@ def datetime_parser(dct):
 def main(nameFilename,debug=False,fileNames=None,learningPaths={},
          students=None, period=None, heatMapColor="jet", functions=None,
          filterQuickClicks=False, filesToSave={"metaData":True, "nodes":True},
-         conceptHitParams=None, heatmapParams=None):
+         conceptHitsParams=None, heatMapParams=None):
     Visualisation.init(nameFilename)
     settings = {}
     settings['learningpaths'] = learningPaths
@@ -48,12 +48,6 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
     settings['period'] = period if not period is None else {
         "usePeriod": False
     }
-
-    if conceptHitParams is not None:
-        settings['conceptHitParams'] = conceptHitParams
-    if conceptHitParams is not None:
-        settings['heatmapParams'] = heatmapParams
-
 
     if fileNames is None:
         fileNames = [x for x in input("which file would you like to use?(please enter the name of the excel file "
@@ -79,13 +73,13 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
     DataProcessing.csvExports(nameFilename, learningPaths=settings['learningpaths'], functions=functions)
 
     if not functions is None:
-        if ("all" in functions or "allHitsPerDayPerConceptGraph" in functions) and 'conceptHitsParams' in settings:
+        if ("all" in functions or "allHitsPerDayPerConceptGraph" in functions) and conceptHitsParams:
             if debug: print("HitsPerDayPerConceptGraph same scale")
-            Visualisation.generateSetOfPathVisits(settings['conceptHitsParams'], settings=settings,
+            Visualisation.generateSetOfPathVisits(conceptHitsParams, settings=settings,
                                                   debug=debug, users=False, specificConcept=True) # ToDo this doesn't work yet
-        if "HitsPerDayPerConceptGraph" in functions and 'conceptHitsParams' in settings:
+        if "HitsPerDayPerConceptGraph" in functions and conceptHitsParams:
             if debug: print("HitsPerDayPerConceptGraph varying scales")
-            for conceptId in settings['conceptHitsParams']:
+            for conceptId in conceptHitsParams:
                 Visualisation.hitsPerDay(nodeId=conceptId)
         if "usersPerDayPerLearningPath" in functions: # not all, because if we want all, they should be on the same scale
             if debug: print("usersPerDayPerLearningPath varying scales")
@@ -101,9 +95,9 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
         if "all" in functions or "allNodesFlowthrough" in functions:
             if debug: print("allNodesFlowthrough")
             Visualisation.allNodesFlowthrough(debug=debug)  # ToDo there is currently no way to properly display this
-        if ("all" in functions or "allNodesHeatMap" in functions) and 'heatmapParams' in settings:
+        if ("all" in functions or "allNodesHeatMap" in functions) and heatMapParams:
             if debug: print("allNodesHeatmap")
-            Visualisation.heatMapOfGivenNodes(**settings['heatmapParams']) # ToDo this doesn't work yet
+            Visualisation.heatMapOfGivenNodes(**heatMapParams) # ToDo this doesn't work yet
 
     # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
     if "all" not in filesToSave: # remove any unwanted files
@@ -137,8 +131,8 @@ if __name__ == "__main__":
         debug=settings['debug'] if 'debug' in settings else False
         functions = dict([(x,True) for x in settings['functions']]) if 'functions' in settings else None
         filesToSave = settings['filesToSave'] if 'filesToSave' in settings else {"metaData":True, "nodes": True}
-        heatmapParams = settings['heatmapParams'] if 'heatmapParams' in settings else None
-        conceptHitParams = settings['conceptHitParams'] if 'conceptHitParams' in settings else None
+        heatMapParams = settings['heatMapParams'] if 'heatMapParams' in settings else None
+        conceptHitsParams = settings['conceptHitsParams'] if 'conceptHitsParams' in settings else None
         # ToDo use kwargs for this
     else:
         learningpaths = {"8":
@@ -158,12 +152,12 @@ if __name__ == "__main__":
         debug=False
         functions = None
         filesToSave = {"metaData":True, "nodes": True}
-        conceptHitParams = None
-        heatmapParams = None
+        conceptHitsParams = None
+        heatMapParams = None
     main(debug=debug, nameFilename=nameFileName, students=students,
          learningPaths=learningpaths, period=period, fileNames=fileNames,
          heatMapColor=heatMapColor, functions=functions, filesToSave=filesToSave,
-         conceptHitParams=conceptHitParams, heatmapParams=heatmapParams)
+         conceptHitsParams=conceptHitsParams, heatMapParams=heatMapParams)
     # Visualisation.hitsPerDayPerLearningPath(max_value=500)
     # ToDo add another argument to the settings to see which additional functions should be run
     # metaData=None
