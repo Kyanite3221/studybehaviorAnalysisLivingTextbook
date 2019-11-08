@@ -433,10 +433,6 @@ def allNodesFlowthrough(nodes=None, debug=False):
         elementNode["onPaths"] = list(conceptNode["on paths"].keys())
         elementNode["name"] += ("["+str(len(elementNode["onPaths"]))+")")
         elements[node] = elementNode
-        if (node == 11858 or node == "11858") and debug:
-            print(elementNode)
-            print(node)
-            print(elements)
 
         # relations to the node
         topNextNodes = dict(  # we only care about the top 5 relations, the rest will be in the metaData of the element

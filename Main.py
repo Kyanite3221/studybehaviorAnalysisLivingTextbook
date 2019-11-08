@@ -80,22 +80,29 @@ def main(nameFilename,debug=False,fileNames=None,learningPaths={},
 
     if not functions is None:
         if ("all" in functions or "allHitsPerDayPerConceptGraph" in functions) and 'conceptHitsParams' in settings:
+            if debug: print("HitsPerDayPerConceptGraph same scale")
             Visualisation.generateSetOfPathVisits(settings['conceptHitsParams'], settings=settings,
                                                   debug=debug, users=False, specificConcept=True) # ToDo this doesn't work yet
         if "HitsPerDayPerConceptGraph" in functions and 'conceptHitsParams' in settings:
+            if debug: print("HitsPerDayPerConceptGraph varying scales")
             for conceptId in settings['conceptHitsParams']:
                 Visualisation.hitsPerDay(nodeId=conceptId)
         if "usersPerDayPerLearningPath" in functions: # not all, because if we want all, they should be on the same scale
+            if debug: print("usersPerDayPerLearningPath varying scales")
             for path in settings['learningpaths']:
                 Visualisation.usersPerDayPerLearningPath(path, settings=settings)
         if "all" in functions or "allUsersPerDayPerLearningPath" in functions:
+            if debug: print("UsersPerDayPerLearningPath same scale")
             Visualisation.generateSetOfPathVisits(pathId=list(settings['learningpaths']), settings=settings,
                                                   debug=debug, users=True)
         if "all" in functions or "allHitsPerDayPerLearningPath" in functions:
+            if debug: print("HitsPerDayPerLearningPath same scale")
             Visualisation.generateSetOfPathVisits(pathId=list(settings['learningpaths']),settings=settings, debug=debug)
         if "all" in functions or "allNodesFlowthrough" in functions:
+            if debug: print("allNodesFlowthrough")
             Visualisation.allNodesFlowthrough(debug=debug)  # ToDo there is currently no way to properly display this
         if ("all" in functions or "allNodesHeatMap" in functions) and 'heatmapParams' in settings:
+            if debug: print("allNodesHeatmap")
             Visualisation.heatMapOfGivenNodes(**settings['heatmapParams']) # ToDo this doesn't work yet
 
     # ToDo nodes.json could be saved in such a way that the same nodes.json is not generated twice for the same settings
