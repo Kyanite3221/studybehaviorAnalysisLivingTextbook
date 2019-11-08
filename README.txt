@@ -62,9 +62,9 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 			dashboardMetaDataCSV is executed by default, but can be left out by entering an empty array)
 	],
 
-"filterSuccessiveHits": bool,
+"filterSuccessiveHits"(optional): bool,
 
-"filesToSave": 
+"filesToSave"(optional): 
 	[
 		fileName(any out of:
 			all,
@@ -75,9 +75,9 @@ to execute normally, use the following parameters: (Not yet fully implemented)
 			
 			nodes and metaData are always generated, but if they are not in the array, they are removed after execution)
 	],
-"heatMapColor": name of the matplotlib colormap, defaults to jet
-"conceptHitsParams":[conceptIds],
-heatmapParams(optional):
+"heatMapColor"(optional): name of the matplotlib colormap, defaults to jet
+"conceptHitsParams"(optional):[conceptIds],
+"heatmapParams"(optional):
 	{
 		"givenNodes"(optional): [conceptIds],
 		"threshholdFlowthroughValue": int default 0,
