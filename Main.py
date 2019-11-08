@@ -138,7 +138,7 @@ if __name__ == "__main__":
         startDate = dateutil.parser.parse("2019-09-01")
         endDate = dateutil.parser.parse("2019-09-23")
         period = {"usePeriod": True, "startDate": startDate, "endDate": endDate}
-        fileNames = ["gis_rs_v2_tracking_export3_10_2019.xlsx"]
+        fileNames = ["inputFiles/gis_rs_v2_tracking_export3_10_2019.xlsx"]
         nameFileName = "configurationFiles/gis_rs_v2_names.csv"
         students = None
         heatMapColor = "jet"
