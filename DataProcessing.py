@@ -16,14 +16,14 @@ def appendOrCreateUser(given_map, user_hash, value, page=True):
         given_map[user_hash]['events'].append(value)
 
 
-def processDataExtracted(data, learningPaths, filterHitsByTime=False,filesToSave={}):
+def processDataExtracted(data, learningPaths, filterHitsByTime=False,filesToSave={}, timeOnPageCalc=False):
 
     # load the workbook
 
 
     users = {}
     nodeMap = NodeMap()
-
+    #
     metaData={"hitsPerLearningPathPerDay":{}, "hitsPerDay": {}}
 
     wb = data
@@ -35,7 +35,11 @@ def processDataExtracted(data, learningPaths, filterHitsByTime=False,filesToSave
     # This is not currently being used for the output
 
     pageLoads = wb['Page loads']
-    metaData['typeOfHitsPerDay'] = extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHitsByTime)
+    # metaData['typeOfHitsPerDay'] = extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHitsByTime)
+    extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHitsByTime)
+
+    if timeOnPageCalc:
+        timeSpentOnPage(users)
     # we now want to know in which paths each concept was
     # ToDo add the visits to the extraction
     for path in learningPaths:
@@ -69,31 +73,31 @@ def processDataExtracted(data, learningPaths, filterHitsByTime=False,filesToSave
 
         for concept in users[user]['concepts']:
 
-            if str(concept[0].date()) in metaData["hitsPerDay"]:
-                metaData["hitsPerDay"][str(concept[0].date())]+=1
+            if str(concept['timestamp'].date()) in metaData["hitsPerDay"]:
+                metaData["hitsPerDay"][str(concept['timestamp'].date())] += 1
             else:
-                metaData["hitsPerDay"][str(concept[0].date())]=1
+                metaData["hitsPerDay"][str(concept['timestamp'].date())] = 1
 
             if lastConcept is not None:
-                nodeMap[lastConcept[1]].addNextNode(concept[1])
+                nodeMap[lastConcept['conceptId']].addNextNode(concept['conceptId'])
             if hasPath:
                 if hasNextPath:
                     # check if timestamp between current path and next path is,
                     # otherwise move one and check if there are more paths
-                    if concept[0] < curPathTimestamp:  # the timestamp of this concept was before a path was chosen
-                        userPaths[user].append({'concept': concept[1], 'on path': None, 'timestamp': concept[0]})
-                    elif curPathTimestamp <= concept[0]\
+                    if concept['timestamp'] < curPathTimestamp:  # the timestamp of this concept was before a path was chosen
+                        userPaths[user].append({'concept': concept['conceptId'], 'on path': None, 'timestamp': concept['timestamp']})
+                    elif curPathTimestamp <= concept['timestamp']\
                             < nextPathTimestamp:  # the timestamp of the concept was between one path and the next
                         if str(curPath) in learningPaths:
                             path = learningPaths[str(curPath)]
-                            userPaths[user].append({'concept': concept[1], "following path": {curPath: path},
-                                                    "in path": concept[1] in path["list"], "timestamp": concept[0]})
+                            userPaths[user].append({'concept': concept['conceptId'], "following path": {curPath: path},
+                                                    "in path": concept['conceptId'] in path["list"], "timestamp": concept['timestamp']})
                         else:
                             userPaths[user].append({"concept": concept[1], "following path" : str(curPath)+"(not pre-programmed)",
-                                                    "in path": False, "timestamp": concept[0]})
+                                                    "in path": False, "timestamp": concept['timestamp']})
                     else:  # the timestamp of this concept was after the next concept
 
-                        while concept[0] >= nextPathTimestamp and hasNextPath:
+                        while concept['timestamp'] >= nextPathTimestamp and hasNextPath:
                             curPathIndex += 1
                             if curPathIndex+1 < len(users[user]['learningTimestamps']):
                                 nextPathTimestamp = users[user]['learningTimestamps'][curPathIndex + 1][0]
@@ -102,33 +106,33 @@ def processDataExtracted(data, learningPaths, filterHitsByTime=False,filesToSave
                         curPath = users[user]['learningTimestamps'][curPathIndex][1]
                         if str(curPath) in learningPaths:
                             path = learningPaths[str(curPath)]
-                            userPaths[user].append({'concept': concept[1], "following path": {curPath:path},
-                                                    "in path": concept[1] in path["list"], "timestamp": concept[0]})
+                            userPaths[user].append({'concept': concept['conceptId'], "following path": {curPath:path},
+                                                    "in path": concept['conceptId'] in path["list"], "timestamp": concept['timestamp']})
                         else:
-                            userPaths[user].append({"concept": concept[1], "following path" : str(curPath)+"(not pre-programmed)",
-                                                    "in path": False, "timestamp" : concept[0]})
+                            userPaths[user].append({"concept": concept['conceptId'], "following path" : str(curPath)+"(not pre-programmed)",
+                                                    "in path": False, "timestamp" : concept['timestamp']})
                 else:
-                    if concept[0] > curPathTimestamp:
+                    if concept['timestamp'] > curPathTimestamp:
                         if str(curPath) in learningPaths:
                             path = learningPaths[str(curPath)]
-                            userPaths[user].append({'concept': concept[1], "following path": {curPath:path},
-                                                    "in path": concept[1] in path["list"], "timestamp": concept[0]})
+                            userPaths[user].append({'concept': concept['concept'], "following path": {curPath:path},
+                                                    "in path": concept['concept'] in path["list"], "timestamp": concept['timestamp']})
                         else:
                             userPaths[user].append({"concept": concept[1], "following path" : str(curPath)+"(not pre-programmed)",
-                                                    "in path": False, "timestamp" : concept[0]})
+                                                    "in path": False, "timestamp" : concept['timestamp']})
                     else:
-                        userPaths[user].append({'concept': concept[1], 'on path': None, 'timestamp': concept[0]})
+                        userPaths[user].append({'concept': concept['conceptId'], 'on path': None, 'timestamp': concept['timestamp']})
             else:
                 userPaths[user].append(concept)
 
-            for learningPath in nodeMap[concept[1]].onPaths:
-                if not str(learningPath) in metaData["hitsPerLearningPathPerDay"]:
-                    metaData["hitsPerLearningPathPerDay"][str(learningPath)]={}
-                pathHits = metaData["hitsPerLearningPathPerDay"][str(learningPath)]
-                if str(concept[0].date()) in pathHits:
-                    pathHits[str(concept[0].date())] += 1
-                else:
-                    pathHits[str(concept[0].date())] = 1
+            # for learningPath in nodeMap[concept[1]].onPaths:
+            #     if not str(learningPath) in metaData["hitsPerLearningPathPerDay"]:
+            #         metaData["hitsPerLearningPathPerDay"][str(learningPath)]={}
+            #     pathHits = metaData["hitsPerLearningPathPerDay"][str(learningPath)]
+            #     if str(concept[0].date()) in pathHits:
+            #         pathHits[str(concept[0].date())] += 1
+            #     else:
+            #         pathHits[str(concept[0].date())] = 1
             lastConcept = concept
 
     saveExportFiles(metaData, nodeMap, userPaths, users,filesToSave)
@@ -157,19 +161,19 @@ def extractLearningPathTimestampsAndTypeOfHits(events, users):  # determine when
         appendOrCreateUser(users, row[0].value, {'event': row[3].value, 'link': row[6].value, 'concept': row[4].value,
                                                  'learning path': row[5].value, 'timestamp': row[2].value,
                                                  'session ID': row[1].value}, False)
-        # in this event a learning path is selected
-        if not (row[Main.LEARNINGPATHINDEXEVENTS].value is None):
-            bisect.insort(users[row[Main.USERIDINDEX].value]['learningTimestamps'],
-                          (row[Main.TIMESTAMPINDEX].value, row[Main.LEARNINGPATHINDEXEVENTS].value))
+        # # in this event a learning path is selected
+        # if not (row[Main.LEARNINGPATHINDEXEVENTS].value is None):
+        #     bisect.insort(users[row[Main.USERIDINDEX].value]['learningTimestamps'],
+        #                   (row[Main.TIMESTAMPINDEX].value, row[Main.LEARNINGPATHINDEXEVENTS].value))
 
-        timestamp = row[2].value  # there.
-        matcher = re.match(patern, str(row[6].value))
-        if row[3].value == "general_link_click" and matcher:
-            users[row[0].value]['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))] = (str(matcher.group(1)), "general")
-        elif row[3].value == "learning_path_browser_open_concept":
-            users[row[0].value]['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))] = (str(row[4].value), "learningPathBrowser")
-        elif row[3].value == "concept_browser_open_concept":
-            users[row[0].value]['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))] = (str(row[4].value), "conceptBrowser")
+        # timestamp = row[2].value  # there.
+        # matcher = re.match(patern, str(row[6].value))
+        # if row[3].value == "general_link_click" and matcher:
+        #     users[row[0].value]['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))] = (str(matcher.group(1)), "general")
+        # elif row[3].value == "learning_path_browser_open_concept":
+        #     users[row[0].value]['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))] = (str(row[4].value), "learningPathBrowser")
+        # elif row[3].value == "concept_browser_open_concept":
+        #     users[row[0].value]['conceptEvents'][str(timestamp.strftime("%Y-%m-%d %H:%M:%S"))] = (str(row[4].value), "conceptBrowser")
 
 
 def extractConcepts(nodeMap, pageLoads, users):  # outdated, replaced by extractConceptsLimited
@@ -275,8 +279,8 @@ def extractConceptsThroughEvents(nodeMap, events, users, filterHits=True,
     if debug: print("dumped " + str(dumpedValues) + " values," + str(dumpers))
 
 
-def extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHits=True):
-    patern = re.compile("/[\d]*/learningpath/show/(\d+)*$")  # regex for the learning path so we can capture its number
+def extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHits=True, filterValue=1):
+    # patern = re.compile("/[\d]*/learningpath/show/(\d+)*$")  # regex for the learning path so we can capture its number
     hitTypesPerDay={}
 
     for row in pageLoads:
@@ -293,10 +297,10 @@ def extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHits=True):
         if concept is not None:
             bisect.insort(users[userHash]['concepts'], (timestamp, concept, studyArea))
 
-        matcher = re.match(patern, row[Main.PATHINDEX].value)
-        if matcher:
-            bisect.insort(users[row[Main.USERIDINDEX].value]['learningTimestamps'],
-                          (row[Main.TIMESTAMPINDEX].value, matcher.group(1)))
+        # matcher = re.match(patern, row[Main.PATHINDEX].value)
+        # if matcher:
+        #     bisect.insort(users[row[Main.USERIDINDEX].value]['learningTimestamps'],
+        #                   (row[Main.TIMESTAMPINDEX].value, matcher.group(1)))
 
     for userHash in users:
         user = users[userHash]
@@ -305,7 +309,7 @@ def extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHits=True):
         nextConcept=None
         for (timestamp, concept, studyArea) in reversed(user['concepts']):
             if filterHits:
-                if (nextTimestamp-timestamp).total_seconds() < 1:  # the concept was less than one second before the next
+                if (nextTimestamp-timestamp).total_seconds() < filterValue:  # the concept was less than one second before the next
                     continue  # we can assume it was a misclick or part of navigation, thus we skip it
                 # If the next concept is a different one or more than 60 seconds have passed, we assume the hit was useful
                 if (not concept == nextConcept) or (nextTimestamp-timestamp).total_seconds() > 60:
@@ -313,30 +317,32 @@ def extractConceptsWithOrigin(nodeMap, pageLoads, users, filterHits=True):
                     nextTimestamp = timestamp
                     nextConcept = concept
                     nodeMap.add(Node(concept, studyArea))
-                    typeOfHit = determineHitType(user, timestamp, concept)
+                    # typeOfHit = determineHitType(user, timestamp, concept)
+                    typeOfHit = "external"
                     nodeMap[concept].visitNode(userHash, timestamp, typeOfHit)
 
-                    if str(timestamp.date()) in hitTypesPerDay:
-                        hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
-                    else:
-                        hitTypesPerDay[str(timestamp.date())]={}
-                        for hitType in ["general", "conceptBrowser", "learningPathBrowser", "external"]:
-                            hitTypesPerDay[str(timestamp.date())][hitType] = 0
-                        hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
+                    # if str(timestamp.date()) in hitTypesPerDay:
+                    #     hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
+                    # else:
+                    #     hitTypesPerDay[str(timestamp.date())]={}
+                    #     for hitType in ["general", "conceptBrowser", "learningPathBrowser", "external"]:
+                    #         hitTypesPerDay[str(timestamp.date())][hitType] = 0
+                    #     hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
 
             else:
-                templist.append((timestamp, concept, 0))  # add the node in reverse order
-                nodeMap.add(Node(concept, 0))
-                typeOfHit = determineHitType(user, timestamp, concept)
+                templist.append((timestamp, concept, studyArea))  # add the node in reverse order
+                nodeMap.add(Node(concept, studyArea))
+                # typeOfHit = determineHitType(user, timestamp, concept)
+                typeOfHit = "external"
                 nodeMap[concept].visitNode(userHash, timestamp, typeOfHit)
 
-                if str(timestamp.date()) in hitTypesPerDay:
-                    hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
-                else:
-                    hitTypesPerDay[str(timestamp.date())] = {}
-                    for hitType in ["general", "conceptBrowser", "learningPathBrowser", "external"]:
-                        hitTypesPerDay[str(timestamp.date())][hitType] = 0
-                    hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
+                # if str(timestamp.date()) in hitTypesPerDay:
+                #     hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
+                # else:
+                #     hitTypesPerDay[str(timestamp.date())] = {}
+                #     for hitType in ["general", "conceptBrowser", "learningPathBrowser", "external"]:
+                #         hitTypesPerDay[str(timestamp.date())][hitType] = 0
+                #     hitTypesPerDay[str(timestamp.date())][typeOfHit] += 1
         user['concepts'] = templist[::-1]
     return hitTypesPerDay
 
@@ -377,15 +383,15 @@ def csvExports(nameFilename, metaData=None,nodes=None, learningPaths=None, debug
 
         if "all" in functions or "pathHitsPerDayCSV" in functions: saveHitsPerDayInPath(metaData)
 
-        if "all" in functions or "dailyOriginsCSV" in functions: saveDailyOrigins(metaData)
+        # if "all" in functions or "dailyOriginsCSV" in functions: saveDailyOrigins(metaData)
 
-        if "all" in functions or "odDataCSV" in functions: saveOriginDestinationData(debug, learningPaths, nodes)
+        # if "all" in functions or "odDataCSV" in functions: saveOriginDestinationData(debug, learningPaths, nodes)
 
-        if "all" in functions or "totalOriginsJSON" in functions: calculateTotalOriginHits(metaData, nodes)
+        # if "all" in functions or "totalOriginsJSON" in functions: calculateTotalOriginHits(metaData, nodes)
 
         if "all" in functions or "dashboardMetaDataCSV" in functions: saveMetaDataForDashboard(metaData)
 
-        if "all" in functions or "conceptOriginsCSV" in functions: saveConceptOrigins(conceptNames, nodes)
+        # if "all" in functions or "conceptOriginsCSV" in functions: saveConceptOrigins(conceptNames, nodes)
 
 
 def saveConceptOrigins(conceptNames, nodes):
@@ -499,3 +505,22 @@ def saveHitsPerDay(hitsPerDay):
         writer.writerow(["days", "hits"])
         for day in hitsPerDay:
             writer.writerow(day)
+
+def timeSpentOnPage(users,maxTimeOnPage = 10800):
+    for userId in users:
+        sortedPages = sorted(users[userId]['pages'], key=lambda element: element['timestamp'])
+        if len(sortedPages) > 1:
+            lastTimestamp=sortedPages[0]['timestamp']
+            for i in range(1, len(sortedPages)):
+                sortedPages[i-1]['timeOnPage'] = sortedPages[i]['timestamp']-lastTimestamp if \
+                    (sortedPages[i]['timestamp']-lastTimestamp).total_seconds() < maxTimeOnPage else None
+                lastTimestamp = sortedPages[i]['timestamp']
+            sortedPages[len(sortedPages)-1]['timeOnPage'] = None
+        users[userId]['pages'] = sortedPages
+
+        concepts = []
+        for page in sortedPages:
+            if page['concept'] is not None:
+                concepts.append({'timestamp':page['timestamp'], 'conceptId':page['concept'],
+                                 'studyarea':page['study area'],'timeOnPage':page['timeOnPage']})
+        users[userId]['concepts'] = concepts

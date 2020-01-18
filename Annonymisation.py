@@ -26,3 +26,10 @@ def annonymiseExtracted(data):
     for row in data["Events"]:
         row[0].value = str(hash(row[0].value))
     return data
+
+def alternateAnonymiseExtracted(data,lookup):
+    for row in data["Page loads"]:
+        row[0].value = "student " + str(lookup[row[0].value])
+    for row in data["Events"]:
+        row[0].value = "student " + str(lookup[row[0].value])
+    return data

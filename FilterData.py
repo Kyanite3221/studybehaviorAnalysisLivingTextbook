@@ -134,7 +134,7 @@ def extractAndFilterData(data, endPeriod, pageName, settings, startPeriod, wb, d
         if settings['students']['whitelist']:  # the given requirements are a whitelist
             for requirement in settings['students']['list']:
                 if requirement['type'] == "regex":
-                    matcher = requirement['value']  # ToDo move this outside loop
+                    matcher = requirement['value']
                     if matcher.match(row[Main.USERIDINDEX].value):
                         data[pageName].append(row)
                         break
@@ -151,7 +151,7 @@ def extractAndFilterData(data, endPeriod, pageName, settings, startPeriod, wb, d
                         stay = False
                         break
                 elif requirement['value'] == row[Main.USERIDINDEX].value:
-                    stay = True
+                    stay = False
                     break
             if stay:
                 data[pageName].append(row)

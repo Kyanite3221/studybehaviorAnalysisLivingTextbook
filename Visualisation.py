@@ -1,3 +1,4 @@
+import datetime
 import json
 import csv
 import sys
@@ -282,6 +283,140 @@ def hitsPerDayPerLearningPath(pathId=None, nodes=None, settings=None,
     filename = "outputs/pathVisits" + str(pathId) + ".png"
     plt.savefig(filename)
     plt.close(fig)
+
+
+def hitsPerDayPerUser(users, userId, nodes=None, settings=None,
+                              max_value=False, logarithmic_scale=False,
+                              startDate=None, endDate=None, days=None):  # based on hitsPerDayPerLearningpath
+    if nodes is None:
+        with open("outputs/nodes.json", "r") as f:
+            nodes = json.load(f, object_hook=datetime_parser)
+    while userId is None:
+        userId = input("what is the id of the user you would like to analise?\n")
+    try:
+        user = users[userId]
+    except:
+        print("user " + userId + " not found")
+
+    if settings is None:
+        settings = {}
+        # with open("configurationFiles/learningPaths.json") as paths:
+        #     settings['learningpaths'] = json.load(paths, object_hook=datetime_parser)
+        settings["learningpaths"] = {}
+
+    if startDate is None:
+        try:
+            startDate = settings['period']['startDate']
+            endDate = settings['period']['endDate']
+        except:
+            startDate = None
+    while startDate is None:
+        try:
+            startDate = dateutil.parser.parse(input("from which date would you like the graph to start?(yyyy-mm-dd)")).date()
+        except:
+            continue
+    while endDate is None:
+        try:
+            endDate = dateutil.parser.parse(input("at which date would you like the graph to end?(yyyy-mm-dd)")).date()
+        except:
+            continue
+    if days is None:
+        pandaRange = pandas.date_range(startDate, endDate).tolist()
+        days = [x.date() for x in pandaRange]
+    else:
+        days = days.copy()
+
+    n_groups = len(days)
+    fig, ax = plt.subplots()
+    index = numpy.arange(n_groups)
+    bar_width = 0.42
+    opacity = 0.9
+    data = []
+    # We need to know how many total concepts were visited, so we can give all of them their own color
+    concepts = {}
+    dayConcepts={}
+    try:
+        (firstHit,_,_)=user["concepts"][len(user["concepts"])-1]
+    except:
+        firstHit = endDate
+    for elem in user["concepts"]:
+        ts, conId = elem['timestamp'], elem['conceptId']
+        concepts[conId] = 0
+
+        if ts.date() not in dayConcepts:
+            dayConcepts[ts.date()] = {}
+
+        if conId in dayConcepts[ts.date()]:
+            dayConcepts[ts.date()][conId] += 1
+        else:
+            dayConcepts[ts.date()][conId] = 1
+    conOrder = list(concepts.keys())
+
+    for i in range(len(conOrder)):
+        data.append([])
+
+    # startOfPath = settings["period"]["endDate"]
+    # indexStart = 0
+    increment = True
+    for day in days:
+        for i in range(len(conOrder)):
+            try:
+                data[i].append(dayConcepts[day][conOrder[i]])
+                concepts[conOrder[i]] += 1
+            except:
+                data[i].append(0)
+    #     if day == startOfPath.date():
+    #         data[len(conOrder)].append(5)
+    #         increment=False
+    #     else:
+    #         data[len(conOrder)].append(0)
+    #         indexStart+=increment
+    # if indexStart < len(days) : days[indexStart]=str(days[indexStart]) + " LP"
+
+    p = []
+    bottom=[0]*len(days)
+
+    for i in range(len(conOrder)):
+        p.append(plt.bar(index, data[i], bar_width,
+                         label=conceptNames[str(conOrder[i])] + str(concepts[conOrder[i]]), bottom=bottom))
+        listAdd(bottom,data[i])
+    # p.append(plt.bar(index, data[len(conOrder)], bar_width, label="start of path", color="k", bottom=bottom))
+
+    plt.xlabel('day')
+    plt.ylabel('visits')
+    plt.title('user ' + str(userId) + ': visits per day')
+    if logarithmic_scale:
+        plt.yscale('log')
+
+    if max_value:
+        axes = plt.gca()
+        axes.set_ylim(0,max_value)
+    # plt.xticks(index, days)
+    xtics=[]
+    indices = []
+    for x in range(0,len(days),10):
+        xtics.append(days[x])
+        indices.append(x)
+    plt.xticks(indices,xtics)
+
+    # for i in range(len(days)):
+    #     plt.text(x=i - 0.5, y=data[0][i] - 0.1, s=data[0][i], size=6)
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    ax.grid(b=True, which='major', color='k', linewidth=0.45)
+    # ax.text(3, 8, "first hit: " + str(firstHit), style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.5, 'pad': 10})
+    plt.setp(ax.get_xticklabels(), rotation=50, horizontalalignment='right')
+    filename = "outputs/user" + str(userId) + "/hitsPerDay.png"
+    plt.savefig(filename)
+    filename = "outputs/hitsPerDay/" + str(userId) + ".png"
+    plt.savefig(filename)
+    plt.close(fig)
+    print("done with user " + str(userId))
+    return (firstHit,userId)
 
 
 
@@ -570,3 +705,255 @@ def heatmapify(data, rowLables, columnLables=None, ax=None,
         return im, cbar, texts
     else:
         plt.text(0.1, 0.85,'no hits',horizontalalignment='center',verticalalignment='center',transform = ax.transAxes)
+
+
+def hoursPerDayPerUser(users, userId, nodes=None, settings=None,
+                              max_value=False, logarithmic_scale=False,
+                              startDate=None, endDate=None, days=None, givenName=None):  # based on hitsPerDayPerLearningpath
+    while userId is None:
+        userId = input("what is the id of the user you would like to analise?\n")
+    try:
+        user = users[userId]
+        print("great sucess")
+    except:
+        print("user " + str(userId) + " not found")
+        print(users)
+        return
+
+    if settings is None:
+        settings = {}
+        settings["learningpaths"] = {}
+
+    if startDate is None:
+        try:
+            startDate = settings['period']['startDate']
+            endDate = settings['period']['endDate']
+        except:
+            startDate = None
+    while startDate is None:
+        try:
+            startDate = dateutil.parser.parse(input("from which date would you like the graph to start?(yyyy-mm-dd)")).date()
+        except:
+            continue
+    while endDate is None:
+        try:
+            endDate = dateutil.parser.parse(input("at which date would you like the graph to end?(yyyy-mm-dd)")).date()
+        except:
+            continue
+    if days is None:
+        pandaRange = pandas.date_range(startDate, endDate).tolist()
+        days = [x.date() for x in pandaRange]
+    else:
+        days = days.copy()
+
+    n_groups = len(days)
+    fig, ax = plt.subplots()
+    index = numpy.arange(n_groups)
+    bar_width = 0.42
+    opacity = 0.9
+    data = []
+    # We need to know how many total concepts were visited, so we can give all of them their own color
+    concepts = {}
+    dayConcepts={}
+    for elem in user["concepts"]:
+        ts, conId, timeSpentOnPage = elem['timestamp'], elem['conceptId'], elem['timeOnPage']
+        concepts[conId] = 0
+
+        if ts.date() not in dayConcepts:
+            dayConcepts[ts.date()] = {}
+
+        if conId in dayConcepts[ts.date()]:
+            dayConcepts[ts.date()][conId] += timeSpentOnPage.seconds/3600 if timeSpentOnPage is not None \
+                else 0.3
+        else:
+            dayConcepts[ts.date()][conId] = timeSpentOnPage.seconds/3600 if timeSpentOnPage is not None \
+                else 0.3
+    conOrder = list(concepts.keys())
+
+    for i in range(len(conOrder)):
+        data.append([])
+
+    # startOfPath = settings["period"]["endDate"]
+    # indexStart = 0
+    increment = True
+    for day in days:
+        for i in range(len(conOrder)):
+            try:
+                data[i].append(dayConcepts[day][conOrder[i]])
+                concepts[conOrder[i]] += 1
+            except:
+                data[i].append(0)
+    #     if day == startOfPath.date():
+    #         data[len(conOrder)].append(5)
+    #         increment=False
+    #     else:
+    #         data[len(conOrder)].append(0)
+    #         indexStart+=increment
+    # if indexStart < len(days) : days[indexStart]=str(days[indexStart]) + " LP"
+
+    p = []
+    bottom = [0]*len(days)
+
+    for i in range(len(conOrder)):
+        p.append(plt.bar(index, data[i], bar_width,
+                         label=conceptNames[str(conOrder[i])] + str(concepts[conOrder[i]]), bottom=bottom))
+        listAdd(bottom,data[i])
+    # p.append(plt.bar(index, data[len(conOrder)], bar_width, label="start of path", color="k", bottom=bottom))
+
+    plt.xlabel('day')
+    plt.ylabel('visits')
+    plt.title('user ' + str(userId) + ': hours per day')
+    if logarithmic_scale:
+        plt.yscale('log')
+
+    if max_value:
+        axes = plt.gca()
+        axes.set_ylim(0,max_value)
+    # plt.xticks(index, days)
+    xtics=[]
+    indices = []
+    for x in range(0,len(days),10):
+        xtics.append(days[x])
+        indices.append(x)
+    plt.xticks(indices,xtics)
+
+    # for i in range(len(days)):
+    #     plt.text(x=i - 0.5, y=data[0][i] - 0.1, s=data[0][i], size=6)
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    ax.grid(b=True, which='major', color='k', linewidth=0.45)
+    # ax.text(3, 8, "first hit: " + str(firstHit), style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.5, 'pad': 10})
+    plt.setp(ax.get_xticklabels(), rotation=50, horizontalalignment='right')
+    filename = ("outputs/user" + str(userId) + "/hitsPerDay.png") if givenName is None else givenName
+    plt.savefig(filename)
+    filename = "outputs/hoursperday/" + str(userId) + ".png"
+    plt.savefig(filename)
+    plt.close(fig)
+    print("done with user " + str(userId))
+
+def hoursPerDayPerUserNoConcepts(users, userId, nodes=None, settings=None,
+                              max_value=False, logarithmic_scale=False,
+                              startDate=None, endDate=None, days=None, givenName=None):  # based on hitsPerDayPerLearningpath
+    while userId is None:
+        userId = input("what is the id of the user you would like to analise?\n")
+    try:
+        user = users[userId]
+        print("great sucess")
+    except:
+        print("user " + str(userId) + " not found")
+        print(users)
+        return
+
+    if settings is None:
+        settings = {}
+        settings["learningpaths"] = {}
+
+    if startDate is None:
+        try:
+            startDate = settings['period']['startDate']
+            endDate = settings['period']['endDate']
+        except:
+            startDate = None
+    while startDate is None:
+        try:
+            startDate = dateutil.parser.parse(input("from which date would you like the graph to start?(yyyy-mm-dd)")).date()
+        except:
+            continue
+    while endDate is None:
+        try:
+            endDate = dateutil.parser.parse(input("at which date would you like the graph to end?(yyyy-mm-dd)")).date()
+        except:
+            continue
+    if days is None:
+        pandaRange = pandas.date_range(startDate, endDate).tolist()
+        days = [x.date() for x in pandaRange]
+    else:
+        days = days.copy()
+
+    n_groups = len(days)
+    fig, ax = plt.subplots()
+    index = numpy.arange(n_groups)
+    bar_width = 0.82
+    opacity = 0.9
+    data = [[],[]]
+    # We need to know how many total concepts were visited, so we can give all of them their own color
+    concepts = {}
+    dayConcepts={}
+    unKnownDays={}
+    visitedDays={}
+    for elem in user["concepts"]:
+        ts, conId, timeSpentOnPage = elem['timestamp'], elem['conceptId'], elem['timeOnPage']
+        concepts[conId] = 0
+
+        if timeSpentOnPage is None:
+            if ts.date() not in unKnownDays:
+                unKnownDays[ts.date()] = 0.3
+            else:
+                unKnownDays[ts.date()] += 0.3
+        else:
+            if ts.date() not in visitedDays:
+                visitedDays[ts.date()] = timeSpentOnPage.seconds/3600
+            else:
+                visitedDays[ts.date()]+= timeSpentOnPage.seconds/3600
+
+    # startOfPath = settings["period"]["endDate"]
+    # indexStart = 0
+    increment = True
+    for day in days:
+        try:
+            data[0].append(visitedDays[day])
+        except:
+            data[0].append(0)
+        try:
+            data[1].append(unKnownDays[day])
+        except:
+            data[1].append(0)
+
+
+    p = []
+    bottom = [0]*len(days)
+
+    for i in [0, 1]:
+        p.append(plt.bar(index, data[i], bar_width,
+                         label=["hours spent","hours estimated"][i], bottom=bottom, color=["black", "grey"][i]))
+        listAdd(bottom,data[i])
+    # p.append(plt.bar(index, data[len(conOrder)], bar_width, label="start of path", color="k", bottom=bottom))
+
+    plt.xlabel('day')
+    plt.ylabel('hours')
+    plt.title(str(userId) + ': hours per day')
+    if logarithmic_scale:
+        plt.yscale('log')
+
+    if max_value:
+        axes = plt.gca()
+        axes.set_ylim(0,max_value)
+    # plt.xticks(index, days)
+    xtics=[]
+    indices = []
+    for x in range(0,len(days), 14):
+        xtics.append(days[x])
+        indices.append(x)
+    plt.xticks(indices,xtics)
+
+    # for i in range(len(days)):
+    #     plt.text(x=i - 0.5, y=data[0][i] - 0.1, s=data[0][i], size=6)
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    ax.grid(b=True, which='major', color='k', linewidth=0.45)
+    # ax.text(3, 8, "first hit: " + str(firstHit), style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.5, 'pad': 10})
+    plt.setp(ax.get_xticklabels(), rotation=50, horizontalalignment='right')
+    filename = ("outputs/user" + str(userId) + "/hitsPerDay.png") if givenName is None else givenName
+    plt.savefig(filename)
+    filename = "outputs/hoursperday/" + str(userId) + ".png"
+    plt.savefig(filename)
+    plt.close(fig)
+    print("done with user " + str(userId))

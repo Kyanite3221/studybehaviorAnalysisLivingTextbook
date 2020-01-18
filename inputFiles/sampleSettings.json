@@ -1,34 +1,24 @@
 {
   "learningpaths": {
-    "8": {
-      "starting time": "2019-09-03 08:45:00",
-      "list": [11941, 11894, 11833, 11800, 11832, 11801, 11853, 11799, 12070],
-      "id": "8"
-    }
   },
   "period": {
     "usePeriod": false,
-    "startDate": "2019-09-01",
-    "endDate": "2019-10-01"
+    "startDate": "2019-09-16",
+    "endDate": "2019-12-16"
   },
   "students": {
-    "whitelist": false,
+    "whitelist": true,
     "list": [
       {
-        "type": "email",
-        "value": "g.j.b.vanvliet@student.utwente.nl"
+        "type": "regex",
+        "value": "[^@]*@student.utwente.nl$"
       }
     ]
   },
-  "dataFilename": ["inputFiles/gis_rs_v2_tracking_export3_10_2019.xlsx","inputFiles/mockup.xlsx"],
-  "nameFilename": "inputFiles/gis_rs_v2_names.csv",
+  "dataFilename": ["dataSets/gima_2019_tracking_export (1).xlsx"],
+  "nameFilename": "inputFiles/gima_2019_concept_id_name_export.csv",
   "debug": true,
-  "heatMapColor": "rainbow",
   "functions": ["all"],
   "filterSuccessiveHits": false,
-  "filesToSave": ["metaData"],
-  "conceptHitsParams": [11941,11940],
-  "heatMapParams": {
-    "threshholdHitsValue": 200
-  }
+  "filesToSave": ["all"]
 }
